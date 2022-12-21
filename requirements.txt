@@ -3,6 +3,9 @@ from_root
 pandas==1.4.4
 numpy==1.21.5
 scikit-learn==1.0.2
+PyYAML
+imblearn
+dill
 -e .
 # -e . ---> it finds the setup.py file in the folder and try to execute it, 
 # if we change the name of the setup.py file to anything else the installation of requirements.txt wont happen
