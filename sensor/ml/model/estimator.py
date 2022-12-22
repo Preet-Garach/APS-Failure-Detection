@@ -18,7 +18,7 @@ class TargetValueMapping:
 
 class SensorModel:
 
-    def __init__(self):
+    def __init__(self,preprocessor, model):
         self.preprocessor = preprocessor
         self.model = model
 
