@@ -56,7 +56,7 @@ MODEL_TRAINER_OVER_FIITING_UNDER_FITTING_THRESHOLD: float = 0.05
 
 
 """
-Model Trainer ralated constant start with MODE TRAINER VAR NAME
+Model Trainer ralated constant start with MODE EVALUATION VAR NAME
 """
 MODEL_EVALUATION_DIR_NAME: str = "model_evaluation"
 MODEL_EVALUATION_CHANGED_THRESHOLD_SCORE: float = 0.02

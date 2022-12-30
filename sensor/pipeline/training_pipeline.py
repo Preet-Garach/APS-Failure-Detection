@@ -1,17 +1,25 @@
-from sensor.entity.config_entity import TrainingPipelineConfig, DataIngestionConfig, DataValidationConfig,DataTransformationConfig, ModelTrainerConfig
+from sensor.entity.config_entity import TrainingPipelineConfig, DataIngestionConfig, DataValidationConfig,DataTransformationConfig, ModelTrainerConfig, ModelPusherConfig
 from sensor.exception import SensorException
 import os,sys
 from sensor.logger import logging
-from sensor.entity.artifact_entity import DataIngestionArtifact, DataValidationArtifact, DataTransformationArtifact, ModelTrainerArtifact
+from sensor.entity.artifact_entity import DataIngestionArtifact, DataValidationArtifact, DataTransformationArtifact, ModelTrainerArtifact, ModelPusherArtifact
 from sensor.components.data_ingestion import DataIngestion
 from sensor.components.data_validation import DataValidation
 from sensor.components.data_transformation import DataTransformation
 from sensor.components.model_trainer import ModelTrainer
+from sensor.components.model_evaluation import ModelEvaluationConfig, ModelEvaluationArtifact, ModelEvaluation
+from sensor.components.model_pusher import ModelPusher
+from sensor.cloud_storage.s3_syncer import S3Sync
+from sensor.constant.s3_bucket import TRAINING_BUCKET_NAME
+from sensor.constant.training_pipeline import SAVED_MODEL_DIR
+
 class TrainPipeline:
+    is_pipeline_running=False
 
     def __init__(self):
         self.training_pipeline_config = TrainingPipelineConfig()
-    
+        self.s3_sync = S3Sync()
+
     def start_data_ingestion(self) -> DataIngestionArtifact:
         try:
             logging.info("Starting Data Ingestion")
@@ -51,7 +59,7 @@ class TrainPipeline:
         except Exception as e:
             raise SensorException(e,sys)
     
-    def start_model_trainer(self,data_transformation_artifact:DataTransformationArtifact):
+    def start_model_trainer(self,data_transformation_artifact:DataTransformationArtifact)-> ModelTrainerArtifact:
         try:
             model_trainer_config = ModelTrainerConfig(training_pipeline_config=self.training_pipeline_config)
             model_trainer = ModelTrainer(model_trainer_config, data_transformation_artifact)
@@ -60,23 +68,55 @@ class TrainPipeline:
         except Exception as e:
             raise SensorException(e,sys)
     
-    def start_model_evaluation(self):
+    def start_model_evaluation(self, data_validation_artifact: DataValidationArtifact,
+                                model_trainer_artifact: ModelTrainerArtifact)-> ModelEvaluationArtifact:
         try:
-            pass
+            model_eval_config = ModelEvaluationConfig(training_pipelien_config=self.training_pipeline_config)
+            model_eval = ModelEvaluation(model_eval_config,data_validation_artifact,model_trainer_artifact)
+            model_eval_arttifact = model_eval.initiate_model_evaluation()
+            return model_eval_arttifact            
         except Exception as e:
             raise SensorException(e,sys)
     
-    def start_model_pusher(self):
+    def start_model_pusher(self,model_eval_artifact:ModelEvaluationArtifact):
         try:
-            pass
+            model_pusher_config = ModelPusherConfig(training_pipeline_config=self.training_pipeline_config)
+            model_pusher = ModelPusher(model_pusher_config, model_eval_artifact)
+            model_pusher_artifact = model_pusher.initiate_model_pusher()
+            return model_pusher_artifact
         except Exception as e:
             raise SensorException(e,sys)
-    
+
+    def sync_artifact_dir_to_s3(self):
+        try:
+            aws_buket_url = f"s3://{TRAINING_BUCKET_NAME}/artifact/{self.training_pipeline_config.timestamp}"
+            self.s3_sync.sync_folder_to_s3(folder = self.training_pipeline_config.artifact_dir,aws_buket_url=aws_buket_url)
+        except Exception as e:
+            raise SensorException(e,sys)
+            
+    def sync_saved_model_dir_to_s3(self):
+        try:
+            aws_buket_url = f"s3://{TRAINING_BUCKET_NAME}/{SAVED_MODEL_DIR}"
+            self.s3_sync.sync_folder_to_s3(folder = SAVED_MODEL_DIR,aws_buket_url=aws_buket_url)
+        except Exception as e:
+            raise SensorException(e,sys)
+
     def run_pipeline(self):
         try:
-           data_ingestion_artifact: DataIngestionArtifact =  self.start_data_ingestion()
-           data_validation_artifact: DataValidationArtifact = self.start_data_validation(data_ingestion_artifact=data_ingestion_artifact)
-           data_transformation_artifact: DataTransformationArtifact = self.start_data_trasformation(data_validation_artifact=data_validation_artifact)
-           model_trainer: ModelTrainerArtifact = self.start_model_trainer(data_transformation_artifact)
+            TrainPipeline.is_pipeline_running=True
+
+            data_ingestion_artifact: DataIngestionArtifact =  self.start_data_ingestion()
+            data_validation_artifact: DataValidationArtifact = self.start_data_validation(data_ingestion_artifact=data_ingestion_artifact)
+            data_transformation_artifact: DataTransformationArtifact = self.start_data_trasformation(data_validation_artifact=data_validation_artifact)
+            model_trainer_artifact: ModelTrainerArtifact = self.start_model_trainer(data_transformation_artifact)
+            model_eval_artifact: ModelEvaluationArtifact = self.start_model_evaluation(model_trainer_artifact=model_trainer_artifact,data_validation_artifact=data_validation_artifact)
+            if not model_eval_artifact.is_accepted:
+                raise Exception("Trained Model is not better than the best model")
+            model_pusher_artifact = self.start_model_pusher(model_eval_artifact)
+            TrainPipeline.is_pipeline_running=False
+            self.sync_artifact_dir_to_s3()
+            self.sync_saved_model_dir_to_s3()
         except Exception as e:
-            raise SensorException(e,sys)
+            self.sync_artifact_dir_to_s3()
+            TrainPipeline.is_pipeline_running=False
+            raise  SensorException(e,sys)   

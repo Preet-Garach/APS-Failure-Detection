@@ -1,7 +1,6 @@
 from datetime import datetime
 import os
 from sensor.constant import training_pipeline
-# from sensor.entity.artifact_entity import DataIngestionArtifact
 
 class TrainingPipelineConfig:
 
@@ -9,7 +8,7 @@ class TrainingPipelineConfig:
         timestamp = timestamp.strftime("%m_%d_%Y_%H_%M_%S")
         self.pipeline_name: str = training_pipeline.PIPELINE_NAME
         self.artifact_dir: str = os.path.join(training_pipeline.ARTIFACT_DIR, timestamp)
-        timestamp: str = timestamp
+        self.timestamp: str = timestamp
 
 class DataIngestionConfig:
 
@@ -71,3 +70,22 @@ class ModelTrainerConfig:
         self.overfitting_underfitting_threshold = training_pipeline.MODEL_TRAINER_OVER_FIITING_UNDER_FITTING_THRESHOLD
 
 
+class ModelEvaluationConfig:
+    def __init__(self, training_pipelien_config: TrainingPipelineConfig):
+        self.model_evaluation_dir: str = os.path.join(
+            training_pipelien_config.artifact_dir, training_pipeline.MODEL_EVALUATION_DIR_NAME
+        )
+        self.report_file_path = os.path.join(self.model_evaluation_dir, training_pipeline.MODEL_EVALUATION_REPORT_NAME)
+        self.change_threshold = training_pipeline.MODEL_EVALUATION_CHANGED_THRESHOLD_SCORE
+
+class ModelPusherConfig:
+    def __init__(self, training_pipeline_config: TrainingPipelineConfig):
+        self.model_pusher_dir: str = os.path.join(
+            training_pipeline_config.artifact_dir, training_pipeline.MODEL_PUSHER_DIR_NAME
+        )
+        self.model_file_path = os.path.join(self.model_pusher_dir,training_pipeline.MODEL_FILE_NAME)
+        timestamp = round(datetime.now().timestamp())
+        self.saved_model_path=os.path.join(
+            training_pipeline.SAVED_MODEL_DIR,
+            f"{timestamp}",
+            training_pipeline.MODEL_FILE_NAME)
