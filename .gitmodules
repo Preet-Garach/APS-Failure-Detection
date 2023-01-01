@@ -1,0 +1,3 @@
+[submodule "Sensor-Fault-Detection"]
+    path = /
+    url = https://github.com/Preet-Garach/Sensor-Fault-Detection.git
