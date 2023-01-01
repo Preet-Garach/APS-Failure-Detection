@@ -110,7 +110,7 @@ class TrainPipeline:
             data_transformation_artifact: DataTransformationArtifact = self.start_data_trasformation(data_validation_artifact=data_validation_artifact)
             model_trainer_artifact: ModelTrainerArtifact = self.start_model_trainer(data_transformation_artifact)
             model_eval_artifact: ModelEvaluationArtifact = self.start_model_evaluation(model_trainer_artifact=model_trainer_artifact,data_validation_artifact=data_validation_artifact)
-            if not model_eval_artifact.is_accepted:
+            if not model_eval_artifact.is_model_accepted:
                 raise Exception("Trained Model is not better than the best model")
             model_pusher_artifact = self.start_model_pusher(model_eval_artifact)
             TrainPipeline.is_pipeline_running=False
