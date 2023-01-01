@@ -1,4 +1,3 @@
-
 from sensor.exception import SensorException
 from sensor.logger import logging
 from sensor.entity.artifact_entity import DataValidationArtifact,ModelTrainerArtifact,ModelEvaluationArtifact
@@ -48,7 +47,7 @@ class ModelEvaluation:
 
             if not model_resolver.is_model_exists():
                 model_evaluation_artifact = ModelEvaluationArtifact(
-                    is_accepted=is_model_accepted, 
+                    is_model_accepted=is_model_accepted, 
                     improved_accuracy=None, 
                     best_model_path=None, 
                     trained_model_path=train_model_file_path, 
@@ -76,7 +75,7 @@ class ModelEvaluation:
 
             
             model_evaluation_artifact = ModelEvaluationArtifact(
-                    is_accepted=is_model_accepted, 
+                    is_model_accepted=is_model_accepted, 
                     improved_accuracy=improved_accuracy, 
                     best_model_path=latest_model_path, 
                     trained_model_path=train_model_file_path, 
@@ -92,7 +91,6 @@ class ModelEvaluation:
             
         except Exception as e:
             raise SensorException(e,sys)
-
     
     
 

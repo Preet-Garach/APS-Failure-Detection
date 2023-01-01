@@ -30,7 +30,7 @@
 	
 4. ECR repo to store/save docker image
 	627726421081.dkr.ecr.ap-south-1.amazonaws.com/preet-sensor-repository
-	
+	for secrets use this link upto "/"
 5. EC2 machine  Ubuntu  Created
 
 6. Open EC2 and Install docker in EC2 Machine 
