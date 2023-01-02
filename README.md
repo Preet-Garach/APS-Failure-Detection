@@ -71,7 +71,11 @@ http://localhost:8080/train
 http://localhost:8080/predict
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 ```
+=======
+```
+>>>>>>> 3b269a9d6e4e103be8ed71f125c007d488d38886
 =======
 ```
 >>>>>>> 3b269a9d6e4e103be8ed71f125c007d488d38886
