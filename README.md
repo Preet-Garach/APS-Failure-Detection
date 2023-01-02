@@ -53,7 +53,7 @@ export MONGODB_URL=<MONGO_DB_URL>
 ### Step 5 - Run the application server
 ```bash
 python main.py
-#### or
+Or
 ```bash
 uvicorn main:app
 
