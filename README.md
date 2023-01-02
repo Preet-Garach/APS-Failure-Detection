@@ -10,13 +10,14 @@ This is a Binary Classification problem, in which the affirmative class indicate
 3. Machine learning algorithms
 4. Docker
 5. MongoDB
+6. Kafka/Confluent
 
 ## Infrastructure Required.
 
 1. AWS S3
 2. AWS EC2
 3. AWS ECR
-4. Git Actions
+4. Github Actions
 
 ## How to run?
 Before we run the project, make sure that you are having MongoDB in your local system, with Compass since we are using MongoDB for data storage. You also need AWS account to access the service like S3, ECR and EC2 instances
